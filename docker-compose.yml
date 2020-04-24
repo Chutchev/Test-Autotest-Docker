@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+  selenium-hub:
+    image: selenium/hub:latest
+    container_name: selenium-hub
+    ports:
+      - "4444:4444"
+
+  chrome:
+    image: selenium/node-chrome:latest
+    volumes:
+      - /dev/shm:/dev/shm
+    depends_on:
+      - selenium-hub
+    environment:
+      - HUB_HOST=selenium-hub
+      - HUB_PORT=4444
+
+  behave:
+    build: 
+      context: .
+      dockerfile: ./Dockerfile
+    volumes:
+      - /home/cerber/docker/behave-data/reports:/behave/cerber-ui/reports
+    command:
+      - /bin/bash
+      - -c
+      - |
+        sleep 9
+        behave
+        python3 beh2cuc.py
+    ports:
+      - "7889:4444"
+      - "7890:3000"
+      - "7891:8000"
+      - "7892:80"
+      - "7893:443"
+      - "7894:8080"
+      - "7895:5000"
+    depends_on:
+      - selenium-hub
+    links:
+      - selenium-hub
